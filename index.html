@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Właściwości wody - czy zawsze są takie same?</title>
+    <!-- Tailwind CSS dla szybkiego i elastycznego stylowania -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        /* Styl narzucony przez użytkownika: delikatne zaokrąglenia, niebieska obramówka, białe tło */
+        .presentation-card {
+            background-color: #ffffff;
+            border: 2px solid #3b82f6;
+            border-radius: 8px; /* Małe zaokrąglenie */
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+        }
+        .btn-nav {
+            border: 1.5px solid #3b82f6;
+            background-color: #ffffff;
+            color: #2563eb;
+            border-radius: 6px; /* Małe zaokrąglenie */
+            transition: all 0.2s ease;
+        }
+        .btn-nav:hover {
+            background-color: #eff6ff;
+            transform: scale(1.05);
+        }
+        .btn-nav:disabled {
+            border-color: #cbd5e1;
+            color: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+        }
+        /* Custom styl dla stanów cząsteczkowych */
+        .molecule-badge {
+            border: 1px solid #93c5fd;
+            background-color: #f0f7ff;
+            border-radius: 4px;
+        }
+        .active-badge {
+            border-color: #2563eb;
+            background-color: #2563eb;
+            color: #ffffff;
+        }
+
+        /* Klasa do powiększenia całego układu interaktywnego na pełny ekran dla nauczyciela */
+        .fullscreen-container {
+            position: fixed !important;
+            top: 2% !important;
+            left: 2% !important;
+            width: 96% !important;
+            height: 96% !important;
+            z-index: 100 !important;
+            background-color: #ffffff !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+            border: 3px solid #2563eb !important;
+            padding: 2.5rem !important;
+            border-radius: 12px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            overflow-y: auto;
+        }
+        
+        /* Wymuszenie czytelnego podziału kolumn w trybie pełnoekranowym */
+        .fullscreen-container.grid {
+            display: grid !important;
+            grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+            gap: 2.5rem !important;
+            height: 100% !important;
+            align-items: center !important;
+        }
+        .fullscreen-container .md\:col-span-5 {
+            grid-column: span 5 / span 12 !important;
+        }
+        .fullscreen-container .md\:col-span-7 {
+            grid-column: span 7 / span 12 !important;
+        }
+        
+        /* Automatyczne ukrywanie bloków tekstu teoretycznego na pełnym ekranie, by zyskać miejsce na interakcję */
+        .fullscreen-container .fs-hide {
+            display: none !important;
+        }
+        
+        .fullscreen-container canvas {
+            max-height: 65vh !important;
+            width: 100% !important;
+            height: auto !important;
+        }
+        .fullscreen-container .max-btn {
+            background-color: #eff6ff !important;
+            border-color: #2563eb !important;
+            top: 1rem !important;
+            right: 1rem !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 md:p-8">
+
+    <!-- Ciemne tło blokujące przy powiększeniu prezentacji/animacji -->
+    <div id="backdrop" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-40 transition-opacity"></div>
+
+    <!-- Główny kontener prezentacji -->
+    <div class="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between gap-4">
+        
+        <!-- Lewy przycisk nawigacji -->
+        <button id="prev-btn" class="btn-nav p-3 md:p-4 z-10 flex items-center justify-center shrink-0" aria-label="Poprzedni slajd">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
+            </svg>
+        </button>
+
+        <!-- Główny obszar slajdu -->
+        <div class="presentation-card w-full min-h-[580px] md:min-h-[620px] p-6 md:p-10 flex flex-col justify-between relative overflow-hidden transition-all duration-300">
+            
+            <!-- Dynamiczna zawartość slajdu -->
+            <div id="slide-container" class="h-full flex flex-col justify-center flex-grow">
+                <!-- Slajdy są generowane dynamicznie przez JavaScript -->
+            </div>
+
+            <!-- Dolny pasek nawigacyjny wewnątrz slajdu -->
+            <div class="border-t border-blue-100 pt-4 mt-6 flex justify-between items-center text-sm font-medium text-slate-500">
+                <span id="slide-title-footer" class="truncate max-w-[70%] text-blue-900 font-semibold"></span>
+                <span id="slide-counter" class="shrink-0 text-blue-600 bg-blue-50 px-3 py-1 rounded-full text-xs"></span>
+            </div>
+        </div>
+
+        <!-- Prawy przycisk nawigacji -->
+        <button id="next-btn" class="btn-nav p-3 md:p-4 z-10 flex items-center justify-center shrink-0" aria-label="Następny slajd">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </button>
+
+    </div>
+
+    <!-- Logika Prezentacji oraz Interaktywnych Animacji -->
+    <script>
+        // Identyfikatory klatek animacji do bezpiecznego czyszczenia pamięci
+        let dipoleAnimId = null;
+        let stateAnimId = null;
+        let lakeAnimId = null;
+        let boilAnimId = null;
+        let syringeAnimId = null;
+
+        // Dane slajdów
+        const slides = [
+            {
+                title: "Woda - niezwykłe właściwości i rola w przyrodzie",
+                html: `
+                    <div class="slide-grid grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative">
+                        <!-- Przycisk powiększenia ekranu całego slajdu wraz z elementami sterującymi -->
+                        <button onclick="toggleMaximize(this)" class="max-btn absolute -top-2 -right-2 md:-top-4 md:-right-4 p-1.5 bg-white border border-blue-300 text-blue-600 hover:bg-blue-50 rounded shadow-sm z-30 transition-all" title="Powiększ widok">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4m12 0h-4v4M4 16v4h4m12 0h-4v-4" />
+                            </svg>
+                        </button>
+
+                        <div class="md:col-span-7 space-y-4">
+                            <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded">Wprowadzenie</span>
+                            <h1 class="text-3xl font-extrabold text-blue-900 leading-tight">Właściwości wody – czy zawsze są takie same, czy się zmieniają?</h1>
+                            <p class="fs-hide text-slate-600 leading-relaxed text-sm">
+                                Woda ($H_2O$) to najbardziej rozpowszechniony związek chemiczny na naszej planecie, pokrywający ponad 70% jej powierzchni. Choć wydaje się powszechna, z fizycznego i chemicznego punktu widzenia jest substancją pełną anomalii i zaskakujących cech.
+                            </p>
+                            <p class="text-slate-600 leading-relaxed text-sm">
+                                W tej interaktywnej prezentacji zbadamy, jak temperatura oraz ciśnienie atmosferyczne drastycznie wpływają na jej gęstość, objętość, temperaturę wrzenia i strukturę cząsteczkową.
+                            </p>
+                            <div class="fs-hide p-3 bg-blue-50/50 border-l-4 border-blue-500 text-xs text-blue-950 rounded-r">
+                                <strong>Ciekawostka:</strong> Poszukiwanie śladów ciekłej wody na Marsie przez geofizyków wynika z faktu, że jest ona fundamentalnym nośnikiem i warunkiem istnienia życia.
+                            </div>
+                        </div>
+                        <div class="md:col-span-5 flex flex-col items-center bg-slate-50 border border-blue-100 rounded-lg p-4 min-h-[280px]">
+                            <!-- Animowany Dipol Wody -->
+                            <div class="relative w-full max-w-[240px] aspect-square flex items-center justify-center">
+                                <canvas id="dipole-canvas" width="240" height="240" class="w-full h-full"></canvas>
+                            </div>
+                            <span class="text-xs text-slate-500 mt-2 text-center font-medium">Model dipolowy cząsteczki wody ($H_2O$) i jej polarność</span>
+                        </div>
+                    </div>
+                `,
+                init: function() {
+                    initDipoleAnimation();
+                }
+            },
+            {
+                title: "Budowa cząsteczki wody i stany skupienia",
+                html: `
+                    <div class="slide-grid grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative">
+                        <!-- Przycisk powiększenia ekranu całego slajdu wraz z elementami sterującymi -->
+                        <button onclick="toggleMaximize(this)" class="max-btn absolute -top-2 -right-2 md:-top-4 md:-right-4 p-1.5 bg-white border border-blue-300 text-blue-600 hover:bg-blue-50 rounded shadow-sm z-30 transition-all" title="Powiększ widok">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4m12 0h-4v4M4 16v4h4m12 0h-4v-4" />
+                            </svg>
+                        </button>
+
+                        <div class="md:col-span-5 space-y-4">
+                            <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded">Struktura</span>
+                            <h2 class="text-2xl font-bold text-blue-900">Jak ułożenie cząsteczek zależy od stanu skupienia?</h2>
+                            <p class="fs-hide text-slate-600 text-xs leading-relaxed">
+                                Cząsteczka wody jest <strong>dipolem</strong>. Atom tlenu ma silniejszy ładunek ujemny ($\delta^-$), a atomy wodoru dodatni ($\delta^+$). Dzięki temu cząsteczki przyciągają się wzajemnie, tworząc słabe oddziaływania zwane <strong>wiązaniami wodorowymi</strong>.
+                            </p>
+                            <p class="fs-hide text-slate-600 text-xs leading-relaxed">
+                                To właśnie te wiązania odpowiadają za niezwykłe zmiany struktury w zależności od temperatury. Kliknij poniższe przyciski, aby zobaczyć ruch cząsteczek:
+                            </p>
+                            
+                            <!-- Kontrola interaktywnego modelu -->
+                            <div class="flex flex-col gap-2 pt-2">
+                                <button onclick="setWaterState('solid')" id="btn-state-solid" class="molecule-badge py-2 px-3 text-left text-xs font-semibold flex items-center justify-between transition-all duration-200">
+                                    <span>Stan stały (Lód) - regularna sieć</span>
+                                    <span class="text-[10px] uppercase font-bold text-blue-500">0°C lub mniej</span>
+                                </button>
+                                <button onclick="setWaterState('liquid')" id="btn-state-liquid" class="molecule-badge py-2 px-3 text-left text-xs font-semibold flex items-center justify-between transition-all duration-200">
+                                    <span>Stan ciekły (Woda) - gęsty chaos</span>
+                                    <span class="text-[10px] uppercase font-bold text-blue-500">od 0°C do 100°C</span>
+                                </button>
+                                <button onclick="setWaterState('gas')" id="btn-state-gas" class="molecule-badge py-2 px-3 text-left text-xs font-semibold flex items-center justify-between transition-all duration-200">
+                                    <span>Stan gazowy (Para) - brak wiązań</span>
+                                    <span class="text-[10px] uppercase font-bold text-blue-500">powyżej 100°C</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="md:col-span-7 flex flex-col items-center bg-slate-50 border border-blue-100 rounded-lg p-4">
+                            <!-- Interaktywny Canvas Molekuł -->
+                            <div class="w-full bg-white border border-slate-200 rounded p-1 relative">
+                                <canvas id="state-canvas" width="400" height="280" class="w-full h-[260px] bg-sky-50/20"></canvas>
+                                <div id="state-info" class="absolute bottom-2 left-2 right-2 bg-white/95 border border-blue-100 rounded p-2 text-xs text-slate-600 shadow-sm transition-all">
+                                    Wybierz stan skupienia po lewej stronie, aby zaobserwować zachowanie cząsteczek.
+                                </div>
+                            </div>
+                            <span class="text-xs text-slate-500 mt-2 text-center">Wizualizacja ułożenia cząsteczek wody i powstawania wiązań wodorowych (przerywane linie)</span>
+                        </div>
+                    </div>
+                `,
+                init: function() {
+                    initStateAnimation();
+                    setWaterState('solid'); // domyślny stan na początku
+                }
+            },
+            {
+                title: "Anomalna gęstość wody a przetrwanie zimą",
+                html: `
+                    <div class="slide-grid grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative">
+                        <!-- Przycisk powiększenia ekranu całego slajdu wraz z elementami sterującymi -->
+                        <button onclick="toggleMaximize(this)" class="max-btn absolute -top-2 -right-2 md:-top-4 md:-right-4 p-1.5 bg-white border border-blue-300 text-blue-600 hover:bg-blue-50 rounded shadow-sm z-30 transition-all" title="Powiększ widok">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4m12 0h-4v4M4 16v4h4m12 0h-4v-4" />
+                            </svg>
+                        </button>
+
+                        <div class="md:col-span-5 space-y-4">
+                            <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded">Anomalia termiczna</span>
+                            <h2 class="text-2xl font-bold text-blue-900">Gęstość wody i jej zmiany z temperaturą</h2>
+                            <p class="fs-hide text-slate-600 text-xs leading-relaxed">
+                                Większość substancji zmniejsza swoją objętość i zwiększa gęstość podczas ochładzania. Z wodą jest inaczej!
+                            </p>
+                            <p class="fs-hide text-slate-600 text-xs leading-relaxed">
+                                Gęstość wody rośnie wraz ze spadkiem temperatury tylko do wartości <strong>1 g/cm³ w temperaturze 4°C</strong>. Poniżej tej temperatury gęstość zaczyna maleć, a lód (0°C) ma mniejszą gęstość niż woda ciekła i unosi się na jej powierzchni.
+                            </p>
+                            
+                            <!-- Kontrola temperatury zbiornika wodnego -->
+                            <div class="bg-blue-50 p-3 rounded border border-blue-100 space-y-2">
+                                <label class="block text-xs font-bold text-blue-900 flex justify-between">
+                                    <span>Temperatura otoczenia:</span>
+                                    <span id="temp-display" class="text-sm text-blue-600">4°C</span>
+                                </label>
+                                <input type="range" id="temp-slider" min="-10" max="25" value="4" class="w-full accent-blue-600 cursor-pointer">
+                                <p class="text-[11px] text-slate-500 italic leading-snug">
+                                    Przesuwaj suwak, aby zmienić porę roku i zobaczyć układ temperatur w głębi jeziora!
+                                </p>
+                            </div>
+                        </div>
+                        <div class="md:col-span-7 flex flex-col items-center bg-slate-50 border border-blue-100 rounded-lg p-4">
+                            <!-- Interaktywny przekrój jeziora -->
+                            <div class="w-full bg-white border border-slate-200 rounded p-1 relative">
+                                <canvas id="lake-canvas" width="450" height="280" class="w-full h-[260px]"></canvas>
+                                <div id="lake-info-box" class="absolute top-2 right-2 bg-white/95 border border-blue-100 rounded p-2 text-xs text-slate-700 shadow max-w-[180px]">
+                                    Woda o temp. 4°C opada na dno, ponieważ ma największą gęstość.
+                                </div>
+                            </div>
+                            <span class="text-xs text-slate-500 mt-2 text-center">Wpływ anomalii gęstości wody na temperaturę przy dnie i życie ryb pod lodem</span>
+                        </div>
+                    </div>
+                `,
+                init: function() {
+                    initLakeAnimation();
+                }
+            },
+            {
+                title: "Wpływ ciśnienia na temperaturę wrzenia",
+                html: `
+                    <div class="slide-grid grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative">
+                        <!-- Przycisk powiększenia ekranu całego slajdu wraz z elementami sterującymi -->
+                        <button onclick="toggleMaximize(this)" class="max-btn absolute -top-2 -right-2 md:-top-4 md:-right-4 p-1.5 bg-white border border-blue-300 text-blue-600 hover:bg-blue-50 rounded shadow-sm z-30 transition-all" title="Powiększ widok">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4m12 0h-4v4M4 16v4h4m12 0h-4v-4" />
+                            </svg>
+                        </button>
+
+                        <div class="md:col-span-5 space-y-4">
+                            <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded">Warunki atmosferyczne</span>
+                            <h2 class="text-2xl font-bold text-blue-900">Wrzenie wody a wysokość nad poziomem morza</h2>
+                            <p class="fs-hide text-slate-600 text-xs leading-relaxed">
+                                Standardowa temperatura wrzenia wody wynosi 100°C tylko przy normalnym ciśnieniu atmosferycznym (1013,25 hPa).
+                            </p>
+                            <p class="fs-hide text-slate-600 text-xs leading-relaxed">
+                                <strong>Wraz ze spadkiem ciśnienia temperatura wrzenia wody maleje.</strong> Oznacza to, że wysoko w górach, gdzie powietrze jest rzadsze, woda zawrze o wiele szybciej i w niższej temperaturze!
+                            </p>
+
+                            <!-- Selektor wysokości / lokalizacji -->
+                            <div class="bg-blue-50 p-3 rounded border border-blue-100 space-y-2">
+                                <span class="block text-xs font-bold text-blue-900">Wybierz lokalizację:</span>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <button onclick="setBoilingLocation('sea')" id="loc-sea" class="px-2 py-1.5 text-[10px] font-bold border rounded bg-white text-slate-700 hover:bg-slate-100 transition-colors">Gdańsk (0 m)</button>
+                                    <button onclick="setBoilingLocation('tatry')" id="loc-tatry" class="px-2 py-1.5 text-[10px] font-bold border rounded bg-white text-slate-700 hover:bg-slate-100 transition-colors">Rysy (2499 m)</button>
+                                    <button onclick="setBoilingLocation('everest')" id="loc-everest" class="px-2 py-1.5 text-[10px] font-bold border rounded bg-white text-slate-700 hover:bg-slate-100 transition-colors">Everest (8848 m)</button>
+                                </div>
+                                <div class="text-[11px] text-slate-600 pt-1 space-y-1">
+                                    <div>Wysokość: <strong id="loc-alt">0 m n.p.m.</strong></div>
+                                    <div>Ciśnienie: <strong id="loc-press">1013 hPa</strong></div>
+                                    <div>Wrzenie przy: <strong id="loc-temp" class="text-blue-600">100°C</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="md:col-span-7 flex flex-col items-center bg-slate-50 border border-blue-100 rounded-lg p-4">
+                            <!-- Animowany garnek / zlewka do gotowania wody -->
+                            <div class="w-full bg-white border border-slate-200 rounded p-1 relative flex items-center justify-center">
+                                <canvas id="boil-canvas" width="400" height="280" class="w-full h-[260px]"></canvas>
+                                <div class="absolute top-2 left-2 bg-blue-900 text-white text-[10px] font-bold px-2 py-1 rounded">
+                                    Aktualna temp.: <span id="boil-temp-indicator">20</span>°C
+                                </div>
+                                <button onclick="toggleBoilingHeat()" id="boil-btn" class="absolute bottom-2 right-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded shadow transition-all">
+                                    Włącz palnik
+                                </button>
+                            </div>
+                            <span class="text-xs text-slate-500 mt-2 text-center">Zaobserwuj, jak ciśnienie atmosferyczne skraca czas potrzebny do rozpoczęcia wrzenia.</span>
+                        </div>
+                    </div>
+                `,
+                init: function() {
+                    initBoilingAnimation();
+                }
+            },
+            {
+                title: "Wpływ spadku temperatury na objętość wody",
+                html: `
+                    <div class="slide-grid grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative">
+                        <!-- Przycisk powiększenia ekranu całego slajdu wraz z elementami sterującymi -->
+                        <button onclick="toggleMaximize(this)" class="max-btn absolute -top-2 -right-2 md:-top-4 md:-right-4 p-1.5 bg-white border border-blue-300 text-blue-600 hover:bg-blue-50 rounded shadow-sm z-30 transition-all" title="Powiększ widok">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4m12 0h-4v4M4 16v4h4m12 0h-4v-4" />
+                            </svg>
+                        </button>
+
+                        <div class="md:col-span-5 space-y-4">
+                            <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded">Doświadczenie</span>
+                            <h2 class="text-2xl font-bold text-blue-900">Badanie wpływu zamarzania na objętość</h2>
+                            <p class="fs-hide text-slate-600 text-xs leading-relaxed">
+                                Gdy woda zamarza, jej cząsteczki ustawiają się w uporządkowaną, ażurową strukturę o większych odległościach między sobą. Powoduje to <strong>zwiększenie objętości przy jednoczesnym spadku gęstości</strong>.
+                            </p>
+                            <p class="fs-hide text-slate-600 text-xs leading-relaxed">
+                                Zjawisko to można łatwo udowodnić, zamrażając wodę w zamkniętej strzykawce. Sprawdź, co dzieje się z tłokiem podczas mrożenia!
+                            </p>
+                            
+                            <!-- Kontrola eksperymentu -->
+                            <div class="bg-blue-50 p-3 rounded border border-blue-100 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-bold text-blue-900">Temperatura otoczenia:</span>
+                                    <span id="syringe-temp" class="text-sm font-bold text-blue-600">20°C (Pokojowa)</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="setSyringeTemp(20)" id="btn-s-warm" class="flex-1 py-1.5 px-2 text-xs font-bold border rounded transition-all active-badge">Pokój (20°C)</button>
+                                    <button onclick="setSyringeTemp(-18)" id="btn-s-cold" class="flex-1 py-1.5 px-2 text-xs font-bold border rounded transition-all">Zamrażarka (-18°C)</button>
+                                </div>
+                                <div class="text-[11px] text-slate-500 leading-snug">
+                                    <strong>Uwaga:</strong> Wzrost objętości zamarzającej wody w szczelnie zamkniętych naczyniach (np. szklanej butelce) generuje ogromną siłę, która może bez trudu rozsadzić szkło lub rury instalacji wodnej!
+                                </div>
+                            </div>
+                        </div>
+                        <div class="md:col-span-7 flex flex-col items-center bg-slate-50 border border-blue-100 rounded-lg p-4">
+                            <!-- Interaktywne doświadczenie ze strzykawkami -->
+                            <div class="w-full bg-white border border-slate-200 rounded p-1 relative flex items-center justify-center">
+                                <canvas id="syringe-canvas" width="400" height="280" class="w-full h-[260px]"></canvas>
+                            </div>
+                            <span class="text-xs text-slate-500 mt-2 text-center">Tłok strzykawki przesuwa się na zewnątrz z powodu rozszerzalności objętościowej wody.</span>
+                        </div>
+                    </div>
+                `,
+                init: function() {
+                    initSyringeAnimation();
+                }
+            },
+            {
+                title: "Interaktywny Quiz Wiedzy o Wodzie",
+                html: `
+                    <div class="w-full max-w-3xl mx-auto flex flex-col justify-center min-h-[420px]" id="quiz-block">
+                        <!-- Generowane dynamicznie przez funkcję quizu -->
+                    </div>
+                `,
+                init: function() {
+                    initQuiz();
+                }
+            }
+        ];
+
+        let currentSlide = 0;
+
+        const slideContainer = document.getElementById('slide-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const slideCounter = document.getElementById('slide-counter');
+        const slideTitleFooter = document.getElementById('slide-title-footer');
+
+        function toggleMaximize(btn) {
+            const wrapper = btn.closest('.slide-grid');
+            const canvas = wrapper.querySelector('canvas');
+            const backdrop = document.getElementById('backdrop');
+            const isFull = wrapper.classList.contains('fullscreen-container');
+
+            if (canvas && !canvas.dataset.origW) {
+                canvas.dataset.origW = canvas.width;
+                canvas.dataset.origH = canvas.height;
+            }
+
+            if (!isFull) {
+                wrapper.classList.add('fullscreen-container');
+                backdrop.classList.remove('hidden');
+      
+                if (canvas) {
+                    canvas.width = parseInt(canvas.dataset.origW) * 1.8;
+                    canvas.height = parseInt(canvas.dataset.origH) * 1.8;
+                }
+
+                btn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 9L4 4m0 0l5-5M4 4v5M15 9l5-5m0 0l-5-5m5 5v5M9 15l-5 5m0 0l5 5m-5-5v-5M15 15l5 5m0 0l-5 5m5-5v-5" />
+                    </svg>
+                `;
+            } else {
+                wrapper.classList.remove('fullscreen-container');
+                backdrop.classList.add('hidden');
+
+                if (canvas) {
+                    canvas.width = parseInt(canvas.dataset.origW);
+                    canvas.height = parseInt(canvas.dataset.origH);
+                }
+
+                btn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4m12 0h-4v4M4 16v4h4m12 0h-4v-4" />
+                    </svg>
+                `;
+            }
+
+            if (currentSlide === 1) {
+                resetParticles(currentState);
+            }
+        }
+
+        function stopAllAnimations() {
+            if (dipoleAnimId) { cancelAnimationFrame(dipoleAnimId); dipoleAnimId = null; }
+            if (stateAnimId) { cancelAnimationFrame(stateAnimId); stateAnimId = null; }
+            if (lakeAnimId) { cancelAnimationFrame(lakeAnimId); lakeAnimId = null; }
+            if (boilAnimId) { cancelAnimationFrame(boilAnimId); boilAnimId = null; }
+            if (syringeAnimId) { cancelAnimationFrame(syringeAnimId); syringeAnimId = null; }
+
+            // Zamknięcie maksymalizacji przy zmianie slajdu
+            const backdrop = document.getElementById('backdrop');
+            if (backdrop) backdrop.classList.add('hidden');
+            document.querySelectorAll('.slide-grid').forEach(wrapper => {
+                wrapper.classList.remove('fullscreen-container');
+                const canvas = wrapper.querySelector('canvas');
+                if (canvas && canvas.dataset.origW) {
+                    canvas.width = parseInt(canvas.dataset.origW);
+                    canvas.height = parseInt(canvas.dataset.origH);
+                }
+                const btn = wrapper.querySelector('.max-btn');
+                if (btn) {
+                    btn.innerHTML = `
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4m12 0h-4v4M4 16v4h4m12 0h-4v-4" />
+                        </svg>
+                    `;
+                }
+            });
+        }
+
+        // Renderowanie slajdu
+        function renderSlide() {
+            stopAllAnimations();
+
+            const slide = slides[currentSlide];
+            
+            slideContainer.innerHTML = slide.html;
+            slideCounter.textContent = `Slajd ${currentSlide + 1} z ${slides.length}`;
+            slideTitleFooter.textContent = slide.title;
+
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === slides.length - 1;
+
+            if (slide.init) {
+                slide.init();
+            }
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                renderSlide();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                renderSlide();
+            }
+        });
+      
+        function initDipoleAnimation() {
+            const canvas = document.getElementById('dipole-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let angle = 0;
+
+            function draw() {
+                const currentCanvas = document.getElementById('dipole-canvas');
+                if (!currentCanvas) {
+                    if (dipoleAnimId) cancelAnimationFrame(dipoleAnimId);
+                    return;
+                }
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+
+                angle += 0.012;
+
+                const ox = cx;
+                const oy = cy - 10;
+                const oRadius = canvas.width * 0.18; 
+
+                const hDist = canvas.width * 0.27;
+                const baseAngle1 = (104.5 / 2) * Math.PI / 180;
+                const baseAngle2 = -(104.5 / 2) * Math.PI / 180;
+
+                const h1x = cx + Math.sin(baseAngle1) * hDist * Math.cos(angle);
+                const h1y = cy + Math.cos(baseAngle1) * hDist - 10;
+                const h1z = Math.sin(baseAngle1) * hDist * Math.sin(angle);
+
+                const h2x = cx + Math.sin(baseAngle2) * hDist * Math.cos(angle);
+                const h2y = cy + Math.cos(baseAngle2) * hDist - 10;
+                const h2z = Math.sin(baseAngle2) * hDist * Math.sin(angle);
+
+                const hRadius = canvas.width * 0.10;
+
+                ctx.lineWidth = canvas.width * 0.058;
+                ctx.lineCap = "round";
+                
+                ctx.beginPath();
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.moveTo(ox, oy);
+                ctx.lineTo(h1x, h1y);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.moveTo(ox, oy);
+                ctx.lineTo(h2x, h2y);
+                ctx.stroke();
+
+                const atoms = [
+                    { name: 'O', x: ox, y: oy, r: oRadius, color: '#ef4444', labelColor: '#ffffff', z: 0, sign: '-' },
+                    { name: 'H', x: h1x, y: h1y, r: hRadius, color: '#3b82f6', labelColor: '#ffffff', z: h1z, sign: '+' },
+                    { name: 'H', x: h2x, y: h2y, r: hRadius, color: '#3b82f6', labelColor: '#ffffff', z: h2z, sign: '+' }
+                ];
+
+                atoms.sort((a, b) => a.z - b.z);
+
+                atoms.forEach(atom => {
+                    ctx.beginPath();
+                    ctx.arc(atom.x + 3, atom.y + 3, atom.r, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    ctx.arc(atom.x, atom.y, atom.r, 0, Math.PI * 2);
+                    
+                    const gradient = ctx.createRadialGradient(
+                        atom.x - atom.r/3, atom.y - atom.r/3, atom.r/10,
+                        atom.x, atom.y, atom.r
+                    );
+                    gradient.addColorStop(0, '#ffffff');
+                    gradient.addColorStop(0.2, atom.color);
+                    gradient.addColorStop(1, darkenColor(atom.color, 40));
+
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+
+                    ctx.strokeStyle = '#1e3a8a';
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+
+                    ctx.fillStyle = atom.labelColor;
+                    ctx.font = `bold ${atom.r * 0.8}px Helvetica`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(atom.name, atom.x, atom.y);
+
+                    ctx.fillStyle = atom.sign === '+' ? '#3b82f6' : '#ef4444';
+                    
+                    let signX = atom.x;
+                    let signY = atom.y + (atom.name === 'O' ? -atom.r - 12 : atom.r + 14);
+                    
+                    ctx.beginPath();
+                    ctx.arc(signX, signY, 11, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fill();
+                    ctx.strokeStyle = '#1e3a8a';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#1e3a8a';
+                    ctx.font = 'bold 12px Helvetica';
+                    ctx.fillText(atom.sign, signX, signY);
+                });
+
+                ctx.strokeStyle = '#2563eb';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.arc(cx, cy, canvas.width * 0.43, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                dipoleAnimId = requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        function darkenColor(hex, percent) {
+            let num = parseInt(hex.replace("#",""),16),
+            amt = Math.round(2.55 * percent),
+            R = (num >> 16) - amt,
+            G = (num >> 8 & 0x00FF) - amt,
+            B = (num & 0x0000FF) - amt;
+            return "#" + (0x1000000 + (R<255?R<0?0:R:255)*0x10000 + (G<255?G<0?0:G:255)*0x100 + (B<255?B<0?0:B:255)).toString(16).slice(1);
+        }
+
+        let currentState = 'solid'; 
+        let particles = [];
+
+        function setWaterState(state) {
+            currentState = state;
+            const buttons = ['solid', 'liquid', 'gas'];
+            buttons.forEach(b => {
+                const btn = document.getElementById(`btn-state-${b}`);
+                if (btn) {
+                    if (b === state) {
+                        btn.className = "molecule-badge py-2 px-3 text-left text-xs font-semibold flex items-center justify-between transition-all duration-200 active-badge";
+                    } else {
+                        btn.className = "molecule-badge py-2 px-3 text-left text-xs font-semibold flex items-center justify-between transition-all duration-200";
+                    }
+                }
+            });
+
+            const info = document.getElementById('state-info');
+            if (info) {
+                if (state === 'solid') {
+                    info.innerHTML = "<strong>Stan stały (Lód):</strong> Cząsteczki tworzą sztywną, przestrzenną sieć sześciokątną. Odległości między nimi są większe niż w stanie ciekłym (struktura ażurowa), co zmniejsza gęstość.";
+                } else if (state === 'liquid') {
+                    info.innerHTML = "<strong>Stan ciekły (Woda):</strong> Cząsteczki leżą blisko siebie, wiązania wodorowe ciągle pękają i tworzą się na nowo, umożliwiając ruch i płynność.";
+                } else if (state === 'gas') {
+                    info.innerHTML = "<strong>Stan gazowy (Para wodna):</strong> Cząsteczki mają wysoką energię kinetyczną, poruszają się swobodnie z dużymi prędkościami i niemal nie oddziałują ze sobą.";
+                }
+            }
+
+            resetParticles(state);
+        }
+
+        function resetParticles(state) {
+            const canvas = document.getElementById('state-canvas');
+            if (!canvas) return;
+
+            particles = [];
+            const count = state === 'gas' ? 12 : (state === 'solid' ? 24 : 32);
+            
+            if (state === 'solid') {
+                const rows = 4;
+                const cols = 6;
+                const spacingX = canvas.width * 0.137;
+                const spacingY = canvas.height * 0.16;
+                const offsetX = canvas.width * 0.137;
+                const offsetY = canvas.height * 0.18;
+
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        let px = offsetX + c * spacingX + (r % 2 === 0 ? 0 : spacingX / 2);
+                        let py = offsetY + r * spacingY;
+                        
+                        particles.push({
+                            x: px,
+                            y: py,
+                            origX: px,
+                            origY: py,
+                            vx: 0,
+                            vy: 0,
+                            size: canvas.width * 0.025,
+                            pulseAngle: Math.random() * Math.PI * 2
+                        });
+                    }
+                }
+            } else if (state === 'liquid') {
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: 50 + Math.random() * (canvas.width - 100),
+                        y: 80 + Math.random() * (canvas.height - 130),
+                        vx: (Math.random() - 0.5) * 0.8,
+                        vy: (Math.random() - 0.5) * 0.8,
+                        size: canvas.width * 0.025
+                    });
+                }
+            } else if (state === 'gas') {
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: 30 + Math.random() * (canvas.width - 60),
+                        y: 30 + Math.random() * (canvas.height - 60),
+                        vx: (Math.random() - 0.5) * 3.5,
+                        vy: (Math.random() - 0.5) * 3.5,
+                        size: canvas.width * 0.025
+                    });
+                }
+            }
+        }
+
+        function initStateAnimation() {
+            const canvas = document.getElementById('state-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            function draw() {
+                // Zabezpieczenie przed wyciekiem animacji
+                const currentCanvas = document.getElementById('state-canvas');
+                if (!currentCanvas) {
+                    if (stateAnimId) cancelAnimationFrame(stateAnimId);
+                    return;
+                }
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+                const currentSize = canvas.width * 0.025;
+
+                if (currentState === 'solid') {
+                    particles.forEach(p => {
+                        p.pulseAngle += 0.15;
+                        p.x = p.origX + Math.sin(p.pulseAngle) * 1.5;
+                        p.y = p.origY + Math.cos(p.pulseAngle * 0.8) * 1.5;
+                    });
+
+                    ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([4, 4]);
+                    for (let i = 0; i < particles.length; i++) {
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+                            if (dist < canvas.width * 0.16) {
+                                ctx.beginPath();
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(particles[j].x, particles[j].y);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                    ctx.setLineDash([]);
+                } else if (currentState === 'liquid') {
+                    particles.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.01;
+
+                        if (p.x < 25) { p.x = 25; p.vx *= -1; }
+                        if (p.x > canvas.width - 25) { p.x = canvas.width - 25; p.vx *= -1; }
+                        if (p.y < 50) { p.y = 50; p.vy *= -1; }
+                        if (p.y > canvas.height - 25) { p.y = canvas.height - 25; p.vy = -Math.abs(p.vy) * 0.9; }
+
+                        p.vx *= 0.99;
+                        p.vy *= 0.99;
+                    });
+
+                    for (let i = 0; i < particles.length; i++) {
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+                            if (dist < currentSize * 2.2) {
+                                ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
+                                ctx.lineWidth = 1.5;
+                                ctx.beginPath();
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(particles[j].x, particles[j].y);
+                                ctx.stroke();
+
+                                const angle = Math.atan2(particles[j].y - particles[i].y, particles[j].x - particles[i].x);
+                                particles[i].vx -= Math.cos(angle) * 0.15;
+                                particles[i].vy -= Math.sin(angle) * 0.15;
+                                particles[j].vx += Math.cos(angle) * 0.15;
+                                particles[j].vy += Math.sin(angle) * 0.15;
+                            }
+                        }
+                    }
+                } else if (currentState === 'gas') {
+                    particles.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+
+                        if (p.x < 25 || p.x > canvas.width - 25) p.vx *= -1;
+                        if (p.y < 25 || p.y > canvas.height - 25) p.vy *= -1;
+
+                        p.x = Math.max(25, Math.min(canvas.width - 25, p.x));
+                        p.y = Math.max(25, Math.min(canvas.height - 25, p.y));
+                    });
+                }
+
+                particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, currentSize, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fill();
+                    ctx.strokeStyle = '#1e3a8a';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    const offsetAngle = currentState === 'solid' ? 0 : (p.x * 0.05);
+                    const hDist = currentSize * 0.8;
+                    const hRadius = currentSize * 0.5;
+
+                    const hPositions = [
+                        { x: p.x + Math.cos(0.9 + offsetAngle) * hDist, y: p.y + Math.sin(0.9 + offsetAngle) * hDist },
+                        { x: p.x + Math.cos(-0.9 + offsetAngle) * hDist, y: p.y + Math.sin(-0.9 + offsetAngle) * hDist }
+                    ];
+
+                    hPositions.forEach(pos => {
+                        ctx.beginPath();
+                        ctx.arc(pos.x, pos.y, hRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = '#3b82f6';
+                        ctx.fill();
+                        ctx.strokeStyle = '#1e3a8a';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                });
+
+                stateAnimId = requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        let fishAngle = 0;
+
+        function initLakeAnimation() {
+            const canvas = document.getElementById('lake-canvas');
+            const slider = document.getElementById('temp-slider');
+            const tempDisplay = document.getElementById('temp-display');
+            const infoBox = document.getElementById('lake-info-box');
+
+            if (!canvas || !slider) return;
+
+            const ctx = canvas.getContext('2d');
+            let currentTemp = parseInt(slider.value);
+
+            // Aktualizacja suwaka
+            slider.addEventListener('input', (e) => {
+                currentTemp = parseInt(e.target.value);
+                if (tempDisplay) tempDisplay.textContent = `${currentTemp}°C`;
+                updateLakeText(currentTemp);
+            });
+
+            function updateLakeText(temp) {
+                if (!infoBox) return;
+                if (temp < 0) {
+                    infoBox.innerHTML = `<strong>Mrozny klimat: (${temp}°C)</strong> Powierzchnia zamarza tworząc izolacyjną warstwę lodu (0°C). Przy dnie woda zachowuje bezpieczną temperaturę 4°C, chroniąc ryby przed zamarznięciem!`;
+                } else if (temp === 4) {
+                    infoBox.innerHTML = `<strong>Punkt maksymalnej gestosci (4°C):</strong> Woda w całym zbiorniku miesza się naturalnie. Ma największą wagę i opada głęboko na dno.`;
+                } else if (temp > 4 && temp <= 15) {
+                    infoBox.innerHTML = `<strong>Klimat umiarkowany (${temp}°C):</strong> Warstwa powierzchniowa jest cieplejsza, a przy dnie nadal zalega cięższa, chłodniejsza woda o temperaturze ok. 4°C.`;
+                } else if (temp > 15) {
+                    infoBox.innerHTML = `<strong>Upalne lato (${temp}°C):</strong> Wyraźne rozwarstwienie (termoklina). Ciepła woda na górze, najzimniejsza i najgęstsza (ok. 4°C) bezpiecznie na samym dnie.`;
+                }
+            }
+
+            updateLakeText(currentTemp);
+
+            function draw() {
+                const currentCanvas = document.getElementById('lake-canvas');
+                if (!currentCanvas) {
+                    if (lakeAnimId) cancelAnimationFrame(lakeAnimId);
+                    return;
+                }
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const width = canvas.width;
+                const height = canvas.height;
+
+                const edgeOffset = width * 0.09;
+
+                let skyGradient = ctx.createLinearGradient(0, 0, 0, 80);
+                if (currentTemp <= 0) {
+                    skyGradient.addColorStop(0, '#e2e8f0');
+                    skyGradient.addColorStop(1, '#cbd5e1');
+                } else {
+                    skyGradient.addColorStop(0, '#bae6fd');
+                    skyGradient.addColorStop(1, '#7dd3fc');
+                }
+                ctx.fillStyle = skyGradient;
+                ctx.fillRect(0, 0, width, 80);
+
+                ctx.fillStyle = currentTemp <= 0 ? '#f1f5f9' : '#854d0e';
+                ctx.beginPath();
+                ctx.moveTo(0, 80);
+                ctx.lineTo(edgeOffset, 110);
+                ctx.lineTo(edgeOffset, height);
+                ctx.lineTo(0, height);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(width, 80);
+                ctx.lineTo(width - edgeOffset, 110);
+                ctx.lineTo(width - edgeOffset, height);
+                ctx.lineTo(width, height);
+                ctx.closePath();
+                ctx.fill();
+
+                let waterGradient = ctx.createLinearGradient(0, 90, 0, height);
+                let topTemp, midTemp, bottomTemp;
+                
+                if (currentTemp <= 0) {
+                    topTemp = 0;
+                    midTemp = 2;
+                    bottomTemp = 4;
+                    waterGradient.addColorStop(0, '#93c5fd');
+                    waterGradient.addColorStop(0.12, '#3b82f6');
+                    waterGradient.addColorStop(1, '#1e3a8a');
+                } else if (currentTemp === 4) {
+                    topTemp = 4;
+                    midTemp = 4;
+                    bottomTemp = 4;
+                    waterGradient.addColorStop(0, '#2563eb');
+                    waterGradient.addColorStop(1, '#1d4ed8');
+                } else {
+                    topTemp = currentTemp;
+                    midTemp = Math.round(currentTemp * 0.6);
+                    bottomTemp = 4;
+                    waterGradient.addColorStop(0, '#38bdf8');
+                    waterGradient.addColorStop(0.5, '#0284c7');
+                    waterGradient.addColorStop(1, '#1e3a8a');
+                }
+
+                ctx.fillStyle = waterGradient;
+                ctx.fillRect(edgeOffset, 90, width - (edgeOffset * 2), height - 90);
+
+                if (currentTemp <= 0) {
+                    ctx.fillStyle = '#f8fafc';
+                    ctx.fillRect(edgeOffset, 80, width - (edgeOffset * 2), 12);
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(width * 0.22, 80); ctx.lineTo(width * 0.24, 88); ctx.lineTo(width * 0.27, 84);
+                    ctx.moveTo(width * 0.55, 80); ctx.lineTo(width * 0.54, 86); ctx.lineTo(width * 0.57, 92);
+                    ctx.moveTo(width * 0.71, 80); ctx.lineTo(width * 0.73, 90);
+                    ctx.stroke();
+                }
+
+                ctx.font = 'bold 12px Helvetica';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                
+                ctx.fillText(`Powierzchnia: ${topTemp}°C`, width/2, 115);
+                ctx.fillText(`Środek: ${midTemp}°C`, width/2, 180);
+                ctx.fillText(`Dno (największa gęstość): ${bottomTemp}°C`, width/2, 255);
+
+                fishAngle += 0.02;
+                const fishX = width / 2 + Math.sin(fishAngle) * (width * 0.2);
+                const fishY = height - 45 + Math.cos(fishAngle * 1.5) * 5;
+                const movingLeft = Math.cos(fishAngle) < 0;
+
+                drawFish(ctx, fishX, fishY, movingLeft);
+
+                lakeAnimId = requestAnimationFrame(draw);
+            }
+
+            function drawFish(cContext, fx, fy, lookingLeft) {
+                cContext.save();
+                cContext.translate(fx, fy);
+                if (lookingLeft) {
+                    cContext.scale(-1, 1);
+                }
+
+                cContext.fillStyle = '#475569';
+                cContext.beginPath();
+                cContext.ellipse(0, 0, 18, 8, 0, 0, Math.PI * 2);
+                cContext.fill();
+
+                cContext.fillStyle = '#94a3b8';
+                cContext.beginPath();
+                cContext.ellipse(0, 2, 14, 5, 0, 0, Math.PI * 2);
+                cContext.fill();
+
+                cContext.fillStyle = '#cbd5e1';
+                cContext.beginPath();
+                cContext.moveTo(-16, 0);
+                cContext.lineTo(-24, -8);
+                cContext.lineTo(-21, 0);
+                cContext.lineTo(-24, 8);
+                cContext.closePath();
+                cContext.fill();
+
+                cContext.fillStyle = '#cbd5e1';
+                cContext.beginPath();
+                cContext.moveTo(-2, -7);
+                cContext.lineTo(-10, -12);
+                cContext.lineTo(-6, -7);
+                cContext.closePath();
+                cContext.fill();
+
+                cContext.fillStyle = '#ffffff';
+                cContext.beginPath();
+                cContext.arc(10, -2, 2.5, 0, Math.PI * 2);
+                cContext.fill();
+                cContext.fillStyle = '#000000';
+                cContext.beginPath();
+                cContext.arc(11, -2, 1.2, 0, Math.PI * 2);
+                cContext.fill();
+
+                cContext.restore();
+            }
+
+            draw();
+        }
+      
+        let isHeating = false;
+        let boilAltitude = 0;
+        let boilPressure = 1013;
+        let boilPoint = 100;
+        let waterTemp = 20.0;
+        let steamParticles = [];
+        let bubbleParticles = [];
+
+        function setBoilingLocation(loc) {
+            const btnSea = document.getElementById('loc-sea');
+            const btnTatry = document.getElementById('loc-tatry');
+            const btnEverest = document.getElementById('loc-everest');
+
+            if (!btnSea || !btnTatry || !btnEverest) return;
+
+            [btnSea, btnTatry, btnEverest].forEach(b => b.className = "px-2 py-1.5 text-[10px] font-bold border rounded bg-white text-slate-700 hover:bg-slate-100 transition-colors");
+
+            if (loc === 'sea') {
+                btnSea.className = "px-2 py-1.5 text-[10px] font-bold border rounded bg-blue-600 text-white transition-colors";
+                boilAltitude = 0;
+                boilPressure = 1013;
+                boilPoint = 100;
+            } else if (loc === 'tatry') {
+                btnTatry.className = "px-2 py-1.5 text-[10px] font-bold border rounded bg-blue-600 text-white transition-colors";
+                boilAltitude = 2499;
+                boilPressure = 740;
+                boilPoint = 92;
+            } else if (loc === 'everest') {
+                btnEverest.className = "px-2 py-1.5 text-[10px] font-bold border rounded bg-blue-600 text-white transition-colors";
+                boilAltitude = 8848;
+                boilPressure = 310;
+                boilPoint = 68;
+            }
+
+            const altEl = document.getElementById('loc-alt');
+            const pressEl = document.getElementById('loc-press');
+            const tempEl = document.getElementById('loc-temp');
+
+            if (altEl) altEl.textContent = `${boilAltitude} m n.p.m.`;
+            if (pressEl) pressEl.textContent = `${boilPressure} hPa`;
+            if (tempEl) tempEl.textContent = `${boilPoint}°C`;
+
+            waterTemp = 20.0;
+            isHeating = false;
+            
+            const boilBtn = document.getElementById('boil-btn');
+            if (boilBtn) {
+                boilBtn.textContent = "Włącz palnik";
+                boilBtn.className = "absolute bottom-2 right-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded shadow transition-all";
+            }
+        }
+
+        function toggleBoilingHeat() {
+            isHeating = !isHeating;
+            const btn = document.getElementById('boil-btn');
+            if (!btn) return;
+
+            if (isHeating) {
+                btn.textContent = "Wyłącz palnik";
+                btn.className = "absolute bottom-2 right-2 bg-slate-600 hover:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded shadow transition-all";
+            } else {
+                btn.textContent = "Włącz palnik";
+                btn.className = "absolute bottom-2 right-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded shadow transition-all";
+            }
+        }
+
+        function initBoilingAnimation() {
+            const canvas = document.getElementById('boil-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            setBoilingLocation('sea');
+
+            function draw() {
+                const currentCanvas = document.getElementById('boil-canvas');
+                const indicator = document.getElementById('boil-temp-indicator');
+                if (!currentCanvas || !indicator) {
+                    if (boilAnimId) cancelAnimationFrame(boilAnimId);
+                    return;
+                }
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const cx = canvas.width / 2;
+
+                if (isHeating) {
+                    if (waterTemp < boilPoint) {
+                        waterTemp += 0.18;
+                    } else {
+                        waterTemp = boilPoint;
+                    }
+                } else {
+                    if (waterTemp > 20) {
+                        waterTemp -= 0.1;
+                    }
+                }
+
+                indicator.textContent = Math.floor(waterTemp);
+
+                const containerW = canvas.width * 0.3;
+                const containerH = canvas.height * 0.5;
+                const baseLineY = canvas.height * 0.78;
+
+                if (isHeating) {
+                    let flameGrad = ctx.createLinearGradient(0, baseLineY, 0, baseLineY + 30);
+                    flameGrad.addColorStop(0, 'rgba(239, 68, 68, 0)');
+                    flameGrad.addColorStop(0.5, 'rgba(249, 115, 22, 0.8)');
+                    flameGrad.addColorStop(1, 'rgba(239, 68, 68, 0.9)');
+                    ctx.fillStyle = flameGrad;
+
+                    ctx.beginPath();
+                    for (let x = cx - containerW * 0.9; x <= cx + containerW * 0.9; x += 10) {
+                        const h = (baseLineY - 10) + Math.sin(x + Date.now() * 0.02) * 8;
+                        if (x === cx - containerW * 0.9) ctx.moveTo(x, baseLineY + 20);
+                        else ctx.lineTo(x, h);
+                    }
+                    ctx.lineTo(cx + containerW * 0.9, baseLineY + 20);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(cx - containerW * 1.1, baseLineY + 15, containerW * 2.2, 8);
+
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(cx - containerW, baseLineY - containerH);
+                ctx.lineTo(cx - containerW, baseLineY);
+                ctx.lineTo(cx + containerW, baseLineY);
+                ctx.lineTo(cx + containerW, baseLineY - containerH);
+                ctx.stroke();
+
+                let waterColor = 'rgba(56, 189, 248, 0.3)';
+                if (waterTemp > 50) {
+                    waterColor = `rgba(14, 165, 233, ${0.3 + (waterTemp - 50) * 0.002})`;
+                }
+                ctx.fillStyle = waterColor;
+                ctx.fillRect(cx - containerW + 2, baseLineY - containerH * 0.7, containerW * 2 - 4, containerH * 0.7);
+
+                ctx.fillStyle = waterColor;
+                ctx.beginPath();
+                ctx.moveTo(cx - containerW + 2, baseLineY - containerH * 0.7);
+                for (let x = cx - containerW + 2; x <= cx + containerW - 2; x += 5) {
+                    const waveAmp = waterTemp >= boilPoint ? 4 : (waterTemp > 60 ? 1.5 : 0.5);
+                    const waveSpeed = waterTemp >= boilPoint ? 0.05 : 0.02;
+                    const wy = (baseLineY - containerH * 0.7) + Math.sin(x * 0.1 + Date.now() * waveSpeed) * waveAmp;
+                    ctx.lineTo(x, wy);
+                }
+                ctx.lineTo(cx + containerW - 2, baseLineY);
+                ctx.lineTo(cx - containerW + 2, baseLineY);
+                ctx.closePath();
+                ctx.fill();
+
+                const currentBoilThreshold = boilPoint - 15;
+                if (waterTemp > currentBoilThreshold) {
+                    const intensity = Math.min(10, Math.floor((waterTemp - currentBoilThreshold) * 1.5));
+                    
+                    if (Math.random() * 10 < intensity) {
+                        bubbleParticles.push({
+                            x: cx - containerW * 0.8 + Math.random() * (containerW * 1.6),
+                            y: baseLineY - 5,
+                            size: 1 + Math.random() * 4,
+                            speed: 1 + Math.random() * 3
+                        });
+                    }
+                }
+
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                for (let i = bubbleParticles.length - 1; i >= 0; i--) {
+                    const b = bubbleParticles[i];
+                    b.y -= b.speed;
+                    b.x += (Math.random() - 0.5) * 1.5;
+
+                    ctx.beginPath();
+                    ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    if (b.y < baseLineY - containerH * 0.7) {
+                        if (waterTemp >= boilPoint - 5) {
+                            steamParticles.push({
+                                x: b.x,
+                                y: baseLineY - containerH * 0.7 - 5,
+                                size: 3,
+                                opacity: 0.6,
+                                vx: (Math.random() - 0.5) * 0.5,
+                                vy: -1 - Math.random() * 1
+                            });
+                        }
+                        bubbleParticles.splice(i, 1);
+                    }
+                }
+
+                if (waterTemp > 50 && Math.random() < 0.4) {
+                    steamParticles.push({
+                        x: cx - containerW * 0.7 + Math.random() * (containerW * 1.4),
+                        y: baseLineY - containerH * 0.7 - 10,
+                        size: 4 + Math.random() * 8,
+                        opacity: (waterTemp - 50) / (boilPoint - 50) * 0.5,
+                        vx: (Math.random() - 0.5) * 0.3,
+                        vy: -0.8 - Math.random() * 1
+                    });
+                }
+
+                for (let i = steamParticles.length - 1; i >= 0; i--) {
+                    const s = steamParticles[i];
+                    s.x += s.vx;
+                    s.y += s.vy;
+                    s.size += 0.2;
+                    s.opacity -= 0.008;
+
+                    if (s.opacity <= 0 || s.y < 30) {
+                        steamParticles.splice(i, 1);
+                    } else {
+                        ctx.fillStyle = `rgba(148, 163, 184, ${s.opacity})`;
+                        ctx.beginPath();
+                        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                boilAnimId = requestAnimationFrame(draw);
+            }
+            draw();
+        }
+      
+        let syringeScale = 0;
+        let targetSyringeScale = 0;
+
+        function setSyringeTemp(temp) {
+            const btnWarm = document.getElementById('btn-s-warm');
+            const btnCold = document.getElementById('btn-s-cold');
+            const sTempText = document.getElementById('syringe-temp');
+
+            if (!btnWarm || !btnCold || !sTempText) return;
+
+            if (temp === 20) {
+                btnWarm.className = "flex-1 py-1.5 px-2 text-xs font-bold border rounded transition-all active-badge";
+                btnCold.className = "flex-1 py-1.5 px-2 text-xs font-bold border rounded transition-all";
+                sTempText.textContent = "20°C (Pokojowa)";
+                targetSyringeScale = 0;
+            } else {
+                btnWarm.className = "flex-1 py-1.5 px-2 text-xs font-bold border rounded transition-all";
+                btnCold.className = "flex-1 py-1.5 px-2 text-xs font-bold border rounded transition-all active-badge";
+                sTempText.textContent = "-18°C (Zamrażarka)";
+                targetSyringeScale = 1;
+            }
+        }
+
+        function initSyringeAnimation() {
+            const canvas = document.getElementById('syringe-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            setSyringeTemp(20);
+
+            function draw() {
+                const currentCanvas = document.getElementById('syringe-canvas');
+                if (!currentCanvas) {
+                    if (syringeAnimId) cancelAnimationFrame(syringeAnimId);
+                    return;
+                }
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const cy = canvas.height / 2;
+
+                syringeScale += (targetSyringeScale - syringeScale) * 0.05;
+
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 3.5;
+                ctx.fillStyle = '#ffffff';
+
+                const syringeL = canvas.width * 0.4;
+                const syringeStart = canvas.width * 0.25;
+
+                ctx.beginPath();
+                ctx.roundRect(syringeStart + syringeL, cy - 35, 12, 70, 3);
+                ctx.stroke();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(syringeStart + syringeL, cy - 25);
+                ctx.lineTo(syringeStart, cy - 25);
+                ctx.lineTo(syringeStart, cy - 6);
+                ctx.lineTo(syringeStart - 15, cy - 6);
+                ctx.lineTo(syringeStart - 15, cy + 6);
+                ctx.lineTo(syringeStart, cy + 6);
+                ctx.lineTo(syringeStart, cy + 25);
+                ctx.lineTo(syringeStart + syringeL, cy + 25);
+                ctx.stroke();
+
+                ctx.fillStyle = '#15803d';
+                ctx.beginPath();
+                ctx.roundRect(syringeStart - 24, cy - 10, 12, 20, 3);
+                ctx.fill();
+                ctx.strokeStyle = '#166534';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                ctx.fillStyle = '#1e3a8a';
+                ctx.font = 'bold 9px Helvetica';
+                ctx.textAlign = 'center';
+                ctx.fillText("Zatkana końcówka", syringeStart - 18, cy - 16);
+
+                const waterStartWidth = syringeL * 0.5;
+                const waterExpansion = syringeL * 0.09;
+                const currentWaterWidth = waterStartWidth + (syringeScale * waterExpansion);
+
+                const fillGradient = ctx.createLinearGradient(syringeStart, cy - 23, syringeStart, cy + 23);
+                if (syringeScale > 0.5) {
+                    fillGradient.addColorStop(0, '#e0f2fe');
+                    fillGradient.addColorStop(1, '#bae6fd');
+                } else {
+                    fillGradient.addColorStop(0, '#bae6fd');
+                    fillGradient.addColorStop(1, '#38bdf8');
+                }
+
+                ctx.fillStyle = fillGradient;
+                ctx.fillRect(syringeStart, cy - 23, currentWaterWidth, 46);
+
+                if (syringeScale > 0.1) {
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${syringeScale * 0.7})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(syringeStart + 10, cy - 10); ctx.lineTo(syringeStart + 25, cy + 10);
+                    ctx.moveTo(syringeStart + 25, cy + 10); ctx.lineTo(syringeStart + 35, cy - 5);
+                    ctx.moveTo(syringeStart + 40, cy - 15); ctx.lineTo(syringeStart + 50, cy + 15);
+                    ctx.moveTo(syringeStart + 60, cy + 5); ctx.lineTo(syringeStart + 75, cy - 12);
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = '#1e3a8a';
+                ctx.font = 'bold 11px Helvetica';
+                ctx.textAlign = 'center';
+                const stateLabel = syringeScale > 0.7 ? "LÓD (V ↑, d ↓)" : "WODA CIEKŁA";
+                ctx.fillText(stateLabel, syringeStart + currentWaterWidth / 2, cy + 4);
+
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 1;
+                for (let i = syringeStart + 10; i < syringeStart + syringeL - 10; i += 15) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, cy - 25);
+                    ctx.lineTo(i, cy - 18);
+                    ctx.stroke();
+                }
+
+                const pistonX = syringeStart + currentWaterWidth;
+                
+                ctx.fillStyle = '#334155';
+                ctx.beginPath();
+                ctx.roundRect(pistonX, cy - 23, 8, 46, 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'rgba(148, 163, 184, 0.5)';
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.fillRect(pistonX + 8, cy - 6, syringeL * 0.7, 12);
+                ctx.strokeRect(pistonX + 8, cy - 6, syringeL * 0.7, 12);
+
+                ctx.fillStyle = '#cbd5e1';
+                ctx.beginPath();
+                ctx.roundRect(pistonX + syringeL * 0.7 + 8, cy - 25, 6, 50, 2);
+                ctx.stroke();
+                ctx.fill();
+
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.setLineDash([3, 3]);
+                ctx.moveTo(pistonX, cy - 35);
+                ctx.lineTo(pistonX, cy + 35);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = '#ef4444';
+                ctx.font = '10px Helvetica';
+                ctx.textAlign = 'left';
+                const volumeText = syringeScale > 0.5 ? "+10% Objętości!" : "Objętość bazowa (0,5 cm³)";
+                ctx.fillText(volumeText, pistonX + 5, cy - 28);
+
+                syringeAnimId = requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        const quizQuestions = [
+            {
+                q: "W jakiej temperaturze czysta woda osiąga swoją maksymalną gęstość ($1\\text{ g/cm}^3$)?",
+                options: ["0°C", "4°C", "100°C"],
+                correct: 1,
+                explanation: "Woda wykazuje anomalię termiczną – kurczy się podczas ogrzewania w zakresie od 0°C do 4°C, gdzie osiąga maksymalną gęstość. Dzięki temu najzimniejsza woda zimą nie opada na dno, co chroni życie w jeziorach."
+            },
+            {
+                q: "Jak zmienia się temperatura wrzenia wody wraz ze spadkiem ciśnienia atmosferycznego?",
+                options: ["Temperatura wrzenia rośnie", "Temperatura wrzenia maleje", "Temperatura wrzenia pozostaje bez zmian"],
+                correct: 1,
+                explanation: "Im niższe ciśnienie atmosferyczne (np. wysoko w górach), tym łatwiej cząsteczki wody uwalniają się z fazy ciekłej. Dlatego na szczycie Rysów woda wrze w ok. 92°C, a na Mount Everest już w 68°C!"
+            },
+            {
+                q: "Dlaczego lód pływa po powierzchni wody?",
+                options: [
+                    "Ponieważ podczas zamarzania woda zmniejsza objętość i zwiększa swoją gęstość",
+                    "Ponieważ lód tworzy luźną, przestrzenną sieć o mniejszej gęstości niż ciekła woda",
+                    "Ponieważ lód składa się z innych atomów chemicznych niż woda ciekła"
+                ],
+                correct: 1,
+                explanation: "Podczas zamarzania cząsteczki wody układają się w sztywną, ażurową strukturę o dużych odległościach. Objętość lodu rośnie o ok. 10%, co sprawia, że jego gęstość maleje i unosi się on na wodzie."
+            },
+            {
+                q: "Który atom w cząsteczce wody posiada cząstkowy ładunek ujemny ($\\delta^-$)?",
+                options: ["Atom tlenu (O)", "Atomy wodoru (H)", "Żaden – woda nie jest dipolem i nie posiada ładunku"],
+                correct: 0,
+                explanation: "Tlen silniej przyciąga wspólne pary elektronowe z wodorem (jest bardziej elektroujemny). Powoduje to przesunięcie ładunku i powstanie dipola z ładunkiem ujemnym na atomie tlenu."
+            }
+        ];
+
+        let quizState = 'start'; 
+        let currentQuestion = 0;
+        let selectedOption = null;
+        let score = 0;
+
+        function initQuiz() {
+            quizState = 'start';
+            currentQuestion = 0;
+            selectedOption = null;
+            score = 0;
+            renderQuizContent();
+        }
+
+        function renderQuizContent() {
+            const container = document.getElementById('quiz-block');
+            if (!container) return;
+
+            if (quizState === 'start') {
+                container.innerHTML = `
+                    <div class="text-center space-y-6 py-6">
+                        <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded">Ewaluacja lekcji</span>
+                        <h2 class="text-3xl font-extrabold text-blue-900">Sprawdź swoją wiedzę!</h2>
+                        <p class="text-slate-600 max-w-md mx-auto text-sm md:text-base leading-relaxed">
+                            Przygotowałem krótki test wiedzy na temat niezwykłych właściwości fizycznych i chemicznych wody omówionych w tej prezentacji.
+                        </p>
+                        <button onclick="startQuiz()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow hover:shadow-lg transition-all transform hover:-translate-y-0.5">
+                            Rozpocznij Quiz
+                        </button>
+                    </div>
+                `;
+            } else if (quizState === 'question' || quizState === 'feedback') {
+                const qData = quizQuestions[currentQuestion];
+                const isAnswered = quizState === 'feedback';
+
+                let optionsHtml = '';
+                qData.options.forEach((opt, idx) => {
+                    let btnClass = "border border-slate-200 hover:border-blue-400 hover:bg-slate-50 text-slate-700";
+                    let stateIcon = "";
+
+                    if (isAnswered) {
+                        if (idx === qData.correct) {
+                            btnClass = "border-2 border-green-500 bg-green-50 text-green-950 font-semibold";
+                            stateIcon = `
+                                <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                            `;
+                        } else if (idx === selectedOption) {
+                            btnClass = "border-2 border-red-500 bg-red-50 text-red-950";
+                            stateIcon = `
+                                <svg class="w-5 h-5 text-red-600 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            `;
+                        } else {
+                            btnClass = "border border-slate-200 text-slate-400 opacity-60";
+                        }
+                    }
+
+                    optionsHtml += `
+                        <button onclick="selectOption(${idx})" ${isAnswered ? 'disabled' : ''} class="w-full text-left p-4 rounded-lg flex items-center justify-between transition-all ${btnClass}">
+                            <span class="text-xs md:text-sm pr-4">${opt}</span>
+                            ${stateIcon}
+                        </button>
+                    `;
+                });
+
+                let feedbackHtml = '';
+                if (isAnswered) {
+                    const isCorrect = selectedOption === qData.correct;
+                    feedbackHtml = `
+                        <div class="p-4 rounded-lg border text-xs leading-relaxed ${isCorrect ? 'bg-green-50/70 border-green-200 text-green-950' : 'bg-red-50/70 border-red-200 text-red-950'}">
+                            <strong class="block mb-1 text-sm">${isCorrect ? 'Bardzo dobrze! ✓' : 'Niestety błędna odpowiedź.'}</strong>
+                            ${qData.explanation}
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center text-xs font-semibold text-slate-400">
+                            <span>Pytanie ${currentQuestion + 1} z ${quizQuestions.length}</span>
+                            <span class="text-blue-600">Wynik: ${score}/${quizQuestions.length}</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-500 transition-all duration-300" style="width: ${(currentQuestion / quizQuestions.length) * 100}%"></div>
+                        </div>
+                        <h3 class="text-base md:text-lg font-bold text-blue-900 leading-snug">${qData.q}</h3>
+                        
+                        <div class="space-y-2.5 pt-2">
+                            ${optionsHtml}
+                        </div>
+
+                        ${feedbackHtml}
+
+                        <div class="flex justify-end pt-2">
+                            ${isAnswered ? `
+                                <button onclick="nextQuestion()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded shadow transition-all">
+                                    ${currentQuestion + 1 === quizQuestions.length ? 'Zakończ Quiz' : 'Następne pytanie'}
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            } else if (quizState === 'result') {
+                const finalPercent = Math.round((score / quizQuestions.length) * 100);
+                let message = '';
+                if (finalPercent === 100) message = "Perfekcyjnie! Znakomicie opanowałeś właściwości wody.";
+                else if (finalPercent >= 75) message = "Świetny wynik! Masz dużą wiedzę o właściwościach wody.";
+                else if (finalPercent >= 50) message = "Dobry wynik! Przejrzyj prezentację ponownie, aby utrwalić szczegóły.";
+                else message = "Warto powtórzyć materiał z prezentacji i spróbować jeszcze raz!";
+
+                container.innerHTML = `
+                    <div class="text-center space-y-5 py-4">
+                        <div class="inline-flex items-center justify-center p-4 bg-blue-50 border-2 border-blue-500 rounded-full w-24 h-24 text-3xl font-extrabold text-blue-600 mx-auto">
+                            ${score}/${quizQuestions.length}
+                        </div>
+                        <h2 class="text-2xl font-bold text-blue-900">Ukończyłeś Quiz!</h2>
+                        <p class="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+                            Twój wynik to <strong>${finalPercent}%</strong> poprawnych odpowiedzi.<br>
+                            ${message}
+                        </p>
+                        <div class="pt-4 flex justify-center gap-3">
+                            <button onclick="initQuiz()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded shadow transition-all">
+                                Spróbuj ponownie
+                            </button>
+                            <button onclick="currentSlide = 0; renderSlide();" class="px-5 py-2.5 border border-blue-300 text-blue-600 hover:bg-blue-50 text-xs font-bold rounded shadow-sm transition-all">
+                                Wróć do początku lekcji
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function startQuiz() {
+            quizState = 'question';
+            renderQuizContent();
+        }
+
+        function selectOption(idx) {
+            if (quizState !== 'question') return;
+            selectedOption = idx;
+            quizState = 'feedback';
+            if (idx === quizQuestions[currentQuestion].correct) {
+                score++;
+            }
+            renderQuizContent();
+        }
+
+        renderSlide();
+    </script>
+</body>
+</html>
