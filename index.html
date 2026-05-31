@@ -1379,7 +1379,7 @@
 
         const quizQuestions = [
             {
-                q: "W jakiej temperaturze czysta woda osiąga swoją maksymalną gęstość 1 g/m3)?",
+                q: "W jakiej temperaturze czysta woda osiąga swoją maksymalną gęstość 1 g/m³)?",
                 options: ["0°C", "4°C", "100°C"],
                 correct: 1,
                 explanation: "Woda wykazuje anomalię termiczną – kurczy się podczas ogrzewania w zakresie od 0°C do 4°C, gdzie osiąga maksymalną gęstość. Dzięki temu najzimniejsza woda zimą nie opada na dno, co chroni życie w jeziorach."
@@ -1401,7 +1401,7 @@
                 explanation: "Podczas zamarzania cząsteczki wody układają się w sztywną, ażurową strukturę o dużych odległościach. Objętość lodu rośnie o ok. 10%, co sprawia, że jego gęstość maleje i unosi się on na wodzie."
             },
             {
-                q: "Który atom w cząsteczce wody posiada cząstkowy ładunek ujemny ($\\delta^-$)?",
+                q: "Który atom w cząsteczce wody posiada cząstkowy ładunek ujemny (δ⁻)?",
                 options: ["Atom tlenu (O)", "Atomy wodoru (H)", "Żaden – woda nie jest dipolem i nie posiada ładunku"],
                 correct: 0,
                 explanation: "Tlen silniej przyciąga wspólne pary elektronowe z wodorem (jest bardziej elektroujemny). Powoduje to przesunięcie ładunku i powstanie dipola z ładunkiem ujemnym na atomie tlenu."
@@ -1428,10 +1428,9 @@
             if (quizState === 'start') {
                 container.innerHTML = `
                     <div class="text-center space-y-6 py-6">
-                        <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded">Ewaluacja lekcji</span>
-                        <h2 class="text-3xl font-extrabold text-blue-900">Sprawdź swoją wiedzę!</h2>
+                        <h2 class="text-3xl font-extrabold text-blue-900">Sprawdźcie swoją wiedzę!</h2>
                         <p class="text-slate-600 max-w-md mx-auto text-sm md:text-base leading-relaxed">
-                            Przygotowałem krótki test wiedzy na temat niezwykłych właściwości fizycznych i chemicznych wody omówionych w tej prezentacji.
+                            Zróbcie krótki test wiedzy na temat niezwykłych właściwości fizycznych i chemicznych wody omówionych w tej prezentacji.
                         </p>
                         <button onclick="startQuiz()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow hover:shadow-lg transition-all transform hover:-translate-y-0.5">
                             Rozpocznij Quiz
